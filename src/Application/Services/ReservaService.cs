@@ -40,15 +40,15 @@ public class ReservaService : IReservaService
 
     public async Task<Reserva> CriarAsync(Reserva reserva, CancellationToken cancellationToken = default)
     {
-        // Validate quarto exists
+        // Verificar se o quarto existe antes de criar a reserva
         var quarto = await _dbContext.Quartos.FirstOrDefaultAsync(q => q.Id == reserva.QuartoId, cancellationToken);
         if (quarto == null) throw new InvalidOperationException("Quarto não encontrado.");
 
-        // Check availability
+        // Verificar se o quarto está disponível no período solicitado
         var disponivel = await QuartoDisponivelAsync(reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, null, cancellationToken);
         if (!disponivel) throw new InvalidOperationException("Quarto indisponível no período informado.");
 
-        // Calculate total
+        // Calcular o valor total da reserva baseado na quantidade de noites e valor diário
         var nights = (int)(reserva.DataSaida.Date - reserva.DataEntrada.Date).TotalDays;
         if (nights < 1) nights = 1;
         reserva.ValorTotal = nights * quarto.ValorDiaria;
@@ -61,11 +61,11 @@ public class ReservaService : IReservaService
 
     public async Task AtualizarAsync(Reserva reserva, CancellationToken cancellationToken = default)
     {
-        // Validate quarto exists
+        // Verificar se o quarto existe antes de atualizar a reserva
         var quarto = await _dbContext.Quartos.FirstOrDefaultAsync(q => q.Id == reserva.QuartoId, cancellationToken);
         if (quarto == null) throw new InvalidOperationException("Quarto não encontrado.");
 
-        // Check availability excluding this reservation id
+        // Verificar disponibilidade excluindo esta reserva da verificação de conflito
         var disponivel = await QuartoDisponivelAsync(reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, reserva.Id, cancellationToken);
         if (!disponivel) throw new InvalidOperationException("Quarto indisponível no período informado.");
 
@@ -97,7 +97,7 @@ public class ReservaService : IReservaService
         if (reservaIdIgnorar.HasValue)
             query = query.Where(r => r.Id != reservaIdIgnorar.Value);
 
-        // Overlap if existing.DataEntrada < dataSaida && existing.DataSaida > dataEntrada
+        // Há sobreposição de datas quando: data de entrada existente < data de saída nova E data de saída existente > data de entrada nova
         var overlap = await query.AnyAsync(r => r.DataEntrada < dataSaida && r.DataSaida > dataEntrada, cancellationToken);
         return !overlap;
     }
