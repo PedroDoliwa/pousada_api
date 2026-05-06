@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PousadaApi.Domain.Entities;
 using PousadaApi.Infrastructure.Data;
 
@@ -31,6 +31,8 @@ public class PousadaService : IPousadaService
 
     public async Task<Pousada> CriarAsync(Pousada pousada, CancellationToken cancellationToken = default)
     {
+        await ValidarUsuarioExistenteAsync(pousada.UsuarioId, cancellationToken);
+
         _dbContext.Pousadas.Add(pousada);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return pousada;
@@ -38,6 +40,8 @@ public class PousadaService : IPousadaService
 
     public async Task AtualizarAsync(Pousada pousada, CancellationToken cancellationToken = default)
     {
+        await ValidarUsuarioExistenteAsync(pousada.UsuarioId, cancellationToken);
+
         _dbContext.Pousadas.Update(pousada);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -52,5 +56,14 @@ public class PousadaService : IPousadaService
 
         _dbContext.Pousadas.Remove(pousada);
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task ValidarUsuarioExistenteAsync(int usuarioId, CancellationToken cancellationToken)
+    {
+        var existe = await _dbContext.Usuarios.AnyAsync(u => u.Id == usuarioId, cancellationToken);
+        if (!existe)
+        {
+            throw new InvalidOperationException("Usuário informado não foi encontrado.");
+        }
     }
 }

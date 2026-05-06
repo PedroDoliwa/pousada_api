@@ -1,8 +1,9 @@
-namespace PousadaApi.Api.Dtos;
+﻿namespace PousadaApi.Api.Dtos;
 
 public class PousadaReadDto
 {
     public int Id { get; set; }
+    public int UsuarioId { get; set; }
     public string Nome { get; set; } = string.Empty;
     public string? Descricao { get; set; }
     public string Endereco { get; set; } = string.Empty;

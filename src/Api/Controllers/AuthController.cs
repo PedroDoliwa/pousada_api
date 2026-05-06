@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PousadaApi.Api.Dtos;
 using PousadaApi.Application.Services;
 
@@ -36,11 +36,11 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { mensagem = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { mensagem = "Erro ao registrar usuário", erro = ex.Message });
+            return StatusCode(500, new { message = "Erro ao registrar usuário: " + ex.Message });
         }
     }
 
@@ -65,11 +65,11 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { mensagem = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { mensagem = "Erro ao fazer login", erro = ex.Message });
+            return StatusCode(500, new { message = "Erro ao fazer login: " + ex.Message });
         }
     }
 }

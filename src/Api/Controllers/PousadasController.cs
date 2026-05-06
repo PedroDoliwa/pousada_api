@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PousadaApi.Application.Services;
 using PousadaApi.Api.Dtos;
 using PousadaApi.Domain.Entities;
@@ -25,6 +25,7 @@ public class PousadasController : ControllerBase
             var result = pousadas.Select(p => new PousadaReadDto
             {
                 Id = p.Id,
+                UsuarioId = p.UsuarioId,
                 Nome = p.Nome,
                 Descricao = p.Descricao,
                 Endereco = p.Endereco,
@@ -52,6 +53,7 @@ public class PousadasController : ControllerBase
             var result = new PousadaReadDto
             {
                 Id = pousada.Id,
+                UsuarioId = pousada.UsuarioId,
                 Nome = pousada.Nome,
                 Descricao = pousada.Descricao,
                 Endereco = pousada.Endereco,
@@ -74,6 +76,7 @@ public class PousadasController : ControllerBase
         {
             var pousada = new Pousada
             {
+                UsuarioId = dto.UsuarioId,
                 Nome = dto.Nome,
                 Descricao = dto.Descricao,
                 Endereco = dto.Endereco,
@@ -87,6 +90,7 @@ public class PousadasController : ControllerBase
             var result = new PousadaReadDto
             {
                 Id = criada.Id,
+                UsuarioId = criada.UsuarioId,
                 Nome = criada.Nome,
                 Descricao = criada.Descricao,
                 Endereco = criada.Endereco,
@@ -95,6 +99,10 @@ public class PousadasController : ControllerBase
                 Ativa = criada.Ativa
             };
             return CreatedAtAction(nameof(ObterPousada), new { id = criada.Id }, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -122,6 +130,10 @@ public class PousadasController : ControllerBase
 
             await _pousadaService.AtualizarAsync(pousada, cancellationToken);
             return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
