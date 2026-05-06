@@ -9,6 +9,7 @@ public class PousadaDbContext : DbContext
     {
     }
 
+    public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Pousada> Pousadas { get; set; }
     public DbSet<Quarto> Quartos { get; set; }
     public DbSet<Hospede> Hospedes { get; set; }
@@ -18,6 +19,17 @@ public class PousadaDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Usuario
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nome).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.SenhaHash).IsRequired();
+            entity.Property(e => e.Perfil).IsRequired().HasMaxLength(50);
+            entity.HasMany(e => e.Pousadas).WithOne(p => p.Usuario).HasForeignKey(p => p.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
         // Pousada
         modelBuilder.Entity<Pousada>(entity =>
         {
@@ -26,6 +38,7 @@ public class PousadaDbContext : DbContext
             entity.Property(e => e.Endereco).IsRequired().HasMaxLength(250);
             entity.Property(e => e.Telefone).IsRequired().HasMaxLength(20);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.UsuarioId).IsRequired();
             entity.HasMany(e => e.Quartos).WithOne(q => q.Pousada).HasForeignKey(q => q.PousadaId);
         });
 
