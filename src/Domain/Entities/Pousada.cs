@@ -28,5 +28,10 @@ public class Pousada
 
     public bool Ativa { get; set; } = true;
 
+    // Relacionamento com Usuario (gerenciador)
+    public int UsuarioId { get; set; }
+    public Usuario Usuario { get; set; }
+
+    // Relacionamento com Quartos
     public ICollection<Quarto> Quartos { get; set; } = new List<Quarto>();
 }
