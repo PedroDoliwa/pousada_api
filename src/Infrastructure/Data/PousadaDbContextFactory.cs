@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
@@ -13,6 +13,10 @@ public sealed class PousadaDbContextFactory : IDesignTimeDbContextFactory<Pousad
     public PousadaDbContext CreateDbContext(string[] args)
     {
         var apiProjectDirectory = ResolveApiProjectDirectory();
+
+        var repoEnv = Path.Combine(Path.GetFullPath(Path.Combine(apiProjectDirectory, "..", "..")), ".env");
+        if (File.Exists(repoEnv))
+            DotNetEnv.Env.Load(repoEnv);
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(apiProjectDirectory)
