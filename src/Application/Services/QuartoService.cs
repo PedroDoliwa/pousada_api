@@ -1,76 +1,50 @@
-using Microsoft.EntityFrameworkCore;
+﻿using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
-using PousadaApi.Infrastructure.Data;
+using PousadaApi.Domain.Interfaces;
 
 namespace PousadaApi.Application.Services;
 
 public class QuartoService : IQuartoService
 {
-    private readonly PousadaDbContext _dbContext;
+    private readonly IQuartoRepository _quartoRepository;
 
-    public QuartoService(PousadaDbContext dbContext)
+    public QuartoService(IQuartoRepository quartoRepository)
     {
-        _dbContext = dbContext;
+        _quartoRepository = quartoRepository;
     }
 
-    public async Task<IEnumerable<Quarto>> ListarAsync(int? pousadaId = null, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<Quarto>> ListarAsync(int? pousadaId = null, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.Quartos
-            .Include(q => q.Pousada)
-            .AsNoTracking()
-            .AsQueryable();
-
-        if (pousadaId.HasValue)
-        {
-            query = query.Where(q => q.PousadaId == pousadaId.Value);
-        }
-
-        return await query.ToListAsync(cancellationToken);
+        return _quartoRepository.ListarAsync(pousadaId, cancellationToken);
     }
 
-    public async Task<Quarto?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
+    public Task<Quarto?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Quartos
-            .Include(q => q.Pousada)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
+        return _quartoRepository.ObterPorIdComPousadaAsync(id, cancellationToken);
     }
 
     public async Task<Quarto> CriarAsync(Quarto quarto, CancellationToken cancellationToken = default)
     {
         await ValidarPousadaExistenteAsync(quarto.PousadaId, cancellationToken);
-
-        _dbContext.Quartos.Add(quarto);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _quartoRepository.AdicionarAsync(quarto, cancellationToken);
         return quarto;
     }
 
     public async Task AtualizarAsync(Quarto quarto, CancellationToken cancellationToken = default)
     {
         await ValidarPousadaExistenteAsync(quarto.PousadaId, cancellationToken);
-
-        _dbContext.Quartos.Update(quarto);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _quartoRepository.AtualizarAsync(quarto, cancellationToken);
     }
 
-    public async Task RemoverAsync(int id, CancellationToken cancellationToken = default)
+    public Task RemoverAsync(int id, CancellationToken cancellationToken = default)
     {
-        var quarto = await _dbContext.Quartos.FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
-        if (quarto == null)
-        {
-            return;
-        }
-
-        _dbContext.Quartos.Remove(quarto);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        return _quartoRepository.RemoverPorIdAsync(id, cancellationToken);
     }
 
     private async Task ValidarPousadaExistenteAsync(int pousadaId, CancellationToken cancellationToken)
     {
-        var existe = await _dbContext.Pousadas.AnyAsync(p => p.Id == pousadaId, cancellationToken);
+        var existe = await _quartoRepository.PousadaExisteAsync(pousadaId, cancellationToken);
         if (!existe)
-        {
             throw new InvalidOperationException("Pousada informada não foi encontrada.");
-        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PousadaApi.Api.Dtos;
-using PousadaApi.Application.Services;
+using PousadaApi.Application.DTOs;
+using PousadaApi.Application.Interfaces;
 
 namespace PousadaApi.Api.Controllers;
 
@@ -18,58 +18,36 @@ public class AuthController : ControllerBase
     [HttpPost("registro")]
     public async Task<ActionResult<UsuarioTokenDto>> Registrar([FromBody] UsuarioCreateDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var usuario = await _authService.ResgistrarAsync(dto.Nome, dto.Email, dto.Senha, dto.Perfil);
-            var token = _authService.GerarToken(usuario);
+        var usuario = await _authService.ResgistrarAsync(dto.Nome, dto.Email, dto.Senha, dto.Perfil);
+        var token = _authService.GerarToken(usuario);
 
-            var resposta = new UsuarioTokenDto
-            {
-                Id = usuario.Id,
-                Nome = usuario.Nome,
-                Email = usuario.Email,
-                Perfil = usuario.Perfil,
-                Token = token
-            };
+        var resposta = new UsuarioTokenDto
+        {
+            Id = usuario.Id,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            Perfil = usuario.Perfil,
+            Token = token
+        };
 
-            return Ok(resposta);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Erro ao registrar usuário: " + ex.Message });
-        }
+        return Ok(resposta);
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<UsuarioTokenDto>> Login([FromBody] UsuarioLoginDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var usuario = await _authService.AutenticarAsync(dto.Email, dto.Senha);
-            var token = _authService.GerarToken(usuario);
+        var usuario = await _authService.AutenticarAsync(dto.Email, dto.Senha);
+        var token = _authService.GerarToken(usuario);
 
-            var resposta = new UsuarioTokenDto
-            {
-                Id = usuario.Id,
-                Nome = usuario.Nome,
-                Email = usuario.Email,
-                Perfil = usuario.Perfil,
-                Token = token
-            };
+        var resposta = new UsuarioTokenDto
+        {
+            Id = usuario.Id,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            Perfil = usuario.Perfil,
+            Token = token
+        };
 
-            return Ok(resposta);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Erro ao fazer login: " + ex.Message });
-        }
+        return Ok(resposta);
     }
 }

@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using PousadaApi.Api.Dtos;
-using PousadaApi.Application.Services;
+﻿using Microsoft.AspNetCore.Mvc;
+using PousadaApi.Application.DTOs;
+using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
 
 namespace PousadaApi.Api.Controllers;
@@ -19,145 +19,102 @@ public class ReservasController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ReservaReadDto>>> ListarReservas([FromQuery] int? pousadaId, CancellationToken cancellationToken)
     {
-        try
+        var reservas = await _reservaService.ListarAsync(pousadaId, cancellationToken);
+        var result = reservas.Select(r => new ReservaReadDto
         {
-            var reservas = await _reservaService.ListarAsync(pousadaId, cancellationToken);
-            var result = reservas.Select(r => new ReservaReadDto
-            {
-                Id = r.Id,
-                QuartoId = r.QuartoId,
-                HospedeId = r.HospedeId,
-                DataEntrada = r.DataEntrada,
-                DataSaida = r.DataSaida,
-                Status = r.Status,
-                ValorTotal = r.ValorTotal,
-                Observacoes = r.Observacoes
-            }).ToList();
+            Id = r.Id,
+            QuartoId = r.QuartoId,
+            HospedeId = r.HospedeId,
+            DataEntrada = r.DataEntrada,
+            DataSaida = r.DataSaida,
+            Status = r.Status,
+            ValorTotal = r.ValorTotal,
+            Observacoes = r.Observacoes
+        }).ToList();
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ReservaReadDto>> ObterReserva(int id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var reserva = await _reservaService.ObterPorIdAsync(id, cancellationToken);
-            if (reserva == null)
-                return NotFound(new { message = "Reserva não encontrada" });
+        var reserva = await _reservaService.ObterPorIdAsync(id, cancellationToken);
+        if (reserva == null)
+            return NotFound(new { message = "Reserva não encontrada" });
 
-            var result = new ReservaReadDto
-            {
-                Id = reserva.Id,
-                QuartoId = reserva.QuartoId,
-                HospedeId = reserva.HospedeId,
-                DataEntrada = reserva.DataEntrada,
-                DataSaida = reserva.DataSaida,
-                Status = reserva.Status,
-                ValorTotal = reserva.ValorTotal,
-                Observacoes = reserva.Observacoes
-            };
-
-            return Ok(result);
-        }
-        catch (Exception ex)
+        var result = new ReservaReadDto
         {
-            return StatusCode(500, new { message = ex.Message });
-        }
+            Id = reserva.Id,
+            QuartoId = reserva.QuartoId,
+            HospedeId = reserva.HospedeId,
+            DataEntrada = reserva.DataEntrada,
+            DataSaida = reserva.DataSaida,
+            Status = reserva.Status,
+            ValorTotal = reserva.ValorTotal,
+            Observacoes = reserva.Observacoes
+        };
+
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<ActionResult<ReservaReadDto>> CriarReserva([FromBody] ReservaCreateDto dto, CancellationToken cancellationToken)
     {
-        try
+        var reserva = new Reserva
         {
-            var reserva = new Reserva
-            {
-                QuartoId = dto.QuartoId,
-                HospedeId = dto.HospedeId,
-                DataEntrada = dto.DataEntrada,
-                DataSaida = dto.DataSaida,
-                Observacoes = dto.Observacoes
-            };
+            QuartoId = dto.QuartoId,
+            HospedeId = dto.HospedeId,
+            DataEntrada = dto.DataEntrada,
+            DataSaida = dto.DataSaida,
+            Observacoes = dto.Observacoes
+        };
 
-            var criada = await _reservaService.CriarAsync(reserva, cancellationToken);
+        var criada = await _reservaService.CriarAsync(reserva, cancellationToken);
 
-            var result = new ReservaReadDto
-            {
-                Id = criada.Id,
-                QuartoId = criada.QuartoId,
-                HospedeId = criada.HospedeId,
-                DataEntrada = criada.DataEntrada,
-                DataSaida = criada.DataSaida,
-                Status = criada.Status,
-                ValorTotal = criada.ValorTotal,
-                Observacoes = criada.Observacoes
-            };
-
-            return CreatedAtAction(nameof(ObterReserva), new { id = criada.Id }, result);
-        }
-        catch (InvalidOperationException ex)
+        var result = new ReservaReadDto
         {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = ex.Message });
-        }
+            Id = criada.Id,
+            QuartoId = criada.QuartoId,
+            HospedeId = criada.HospedeId,
+            DataEntrada = criada.DataEntrada,
+            DataSaida = criada.DataSaida,
+            Status = criada.Status,
+            ValorTotal = criada.ValorTotal,
+            Observacoes = criada.Observacoes
+        };
+
+        return CreatedAtAction(nameof(ObterReserva), new { id = criada.Id }, result);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> AtualizarReserva(int id, [FromBody] ReservaUpdateDto dto, CancellationToken cancellationToken)
     {
-        try
-        {
-            if (id != dto.Id)
-                return BadRequest(new { message = "ID não corresponde" });
+        if (id != dto.Id)
+            return BadRequest(new { message = "ID não corresponde" });
 
-            var reserva = await _reservaService.ObterPorIdAsync(id, cancellationToken);
-            if (reserva == null)
-                return NotFound(new { message = "Reserva não encontrada" });
+        var reserva = await _reservaService.ObterPorIdAsync(id, cancellationToken);
+        if (reserva == null)
+            return NotFound(new { message = "Reserva não encontrada" });
 
-            reserva.QuartoId = dto.QuartoId;
-            reserva.HospedeId = dto.HospedeId;
-            reserva.DataEntrada = dto.DataEntrada;
-            reserva.DataSaida = dto.DataSaida;
-            if (!string.IsNullOrEmpty(dto.Status)) reserva.Status = dto.Status;
-            reserva.Observacoes = dto.Observacoes;
+        reserva.QuartoId = dto.QuartoId;
+        reserva.HospedeId = dto.HospedeId;
+        reserva.DataEntrada = dto.DataEntrada;
+        reserva.DataSaida = dto.DataSaida;
+        if (!string.IsNullOrEmpty(dto.Status)) reserva.Status = dto.Status;
+        reserva.Observacoes = dto.Observacoes;
 
-            await _reservaService.AtualizarAsync(reserva, cancellationToken);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = ex.Message });
-        }
+        await _reservaService.AtualizarAsync(reserva, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> CancelarReserva(int id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var reserva = await _reservaService.ObterPorIdAsync(id, cancellationToken);
-            if (reserva == null)
-                return NotFound(new { message = "Reserva não encontrada" });
+        var reserva = await _reservaService.ObterPorIdAsync(id, cancellationToken);
+        if (reserva == null)
+            return NotFound(new { message = "Reserva não encontrada" });
 
-            await _reservaService.CancelarAsync(id, cancellationToken);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = ex.Message });
-        }
+        await _reservaService.CancelarAsync(id, cancellationToken);
+        return NoContent();
     }
 }
