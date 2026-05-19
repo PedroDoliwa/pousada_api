@@ -11,6 +11,7 @@ public class ReservaService : IReservaService
     private readonly IQuartoRepository _quartoRepository;
     private readonly IHospedeRepository _hospedeRepository;
     private readonly IPousadaRepository _pousadaRepository;
+    private readonly IDisponibilidadeService _disponibilidade;
     private readonly ICurrentUserService _currentUser;
 
     public ReservaService(
@@ -18,12 +19,14 @@ public class ReservaService : IReservaService
         IQuartoRepository quartoRepository,
         IHospedeRepository hospedeRepository,
         IPousadaRepository pousadaRepository,
+        IDisponibilidadeService disponibilidade,
         ICurrentUserService currentUser)
     {
         _reservaRepository = reservaRepository;
         _quartoRepository = quartoRepository;
         _hospedeRepository = hospedeRepository;
         _pousadaRepository = pousadaRepository;
+        _disponibilidade = disponibilidade;
         _currentUser = currentUser;
     }
 
@@ -60,7 +63,8 @@ public class ReservaService : IReservaService
         if (hospede.PousadaId != quarto.PousadaId)
             throw new InvalidOperationException("Hóspede não pertence à mesma pousada do quarto.");
 
-        var disponivel = await QuartoDisponivelAsync(reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, null, cancellationToken);
+        var disponivel = await _disponibilidade.QuartoDisponivelAsync(
+            reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, null, cancellationToken);
         if (!disponivel)
             throw new InvalidOperationException("Quarto indisponível no período informado.");
 
@@ -93,7 +97,8 @@ public class ReservaService : IReservaService
         if (hospede.PousadaId != quarto.PousadaId)
             throw new InvalidOperationException("Hóspede não pertence à mesma pousada do quarto.");
 
-        var disponivel = await QuartoDisponivelAsync(reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, reserva.Id, cancellationToken);
+        var disponivel = await _disponibilidade.QuartoDisponivelAsync(
+            reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, reserva.Id, cancellationToken);
         if (!disponivel)
             throw new InvalidOperationException("Quarto indisponível no período informado.");
 
@@ -116,19 +121,6 @@ public class ReservaService : IReservaService
 
         rastreada.Status = "Cancelada";
         await _reservaRepository.AtualizarAsync(rastreada, cancellationToken);
-    }
-
-    public async Task<bool> QuartoDisponivelAsync(int quartoId, DateTime dataEntrada, DateTime dataSaida, int? reservaIdIgnorar = null, CancellationToken cancellationToken = default)
-    {
-        if (dataEntrada >= dataSaida) return false;
-
-        var quarto = await _quartoRepository.ObterPorIdEUsuarioAsync(quartoId, _currentUser.UserId, cancellationToken);
-        if (quarto is null)
-            return false;
-
-        var overlap = await _reservaRepository.ExisteSobreposicaoNoQuartoAsync(
-            quartoId, dataEntrada, dataSaida, reservaIdIgnorar, cancellationToken);
-        return !overlap;
     }
 
     private static DateTime ToUtc(DateTime value) =>

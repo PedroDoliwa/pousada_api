@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IQuartoService, QuartoService>();
         services.AddScoped<IHospedeService, HospedeService>();
         services.AddScoped<IReservaService, ReservaService>();
+        services.AddScoped<IDisponibilidadeService, DisponibilidadeService>();
         services.AddScoped<IAuthService, AuthService>();
 
         var secretKey = configuration["Jwt:SecretKey"]

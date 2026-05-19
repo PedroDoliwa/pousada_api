@@ -9,5 +9,4 @@ public interface IReservaService
     Task<Reserva> CriarAsync(Reserva reserva, CancellationToken cancellationToken = default);
     Task AtualizarAsync(Reserva reserva, CancellationToken cancellationToken = default);
     Task CancelarAsync(int id, CancellationToken cancellationToken = default);
-    Task<bool> QuartoDisponivelAsync(int quartoId, DateTime dataEntrada, DateTime dataSaida, int? reservaIdIgnorar = null, CancellationToken cancellationToken = default);
 }

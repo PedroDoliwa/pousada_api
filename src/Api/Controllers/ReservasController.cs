@@ -12,10 +12,34 @@ namespace PousadaApi.Api.Controllers;
 public class ReservasController : ControllerBase
 {
     private readonly IReservaService _reservaService;
+    private readonly IDisponibilidadeService _disponibilidadeService;
 
-    public ReservasController(IReservaService reservaService)
+    public ReservasController(IReservaService reservaService, IDisponibilidadeService disponibilidadeService)
     {
         _reservaService = reservaService;
+        _disponibilidadeService = disponibilidadeService;
+    }
+
+    [HttpGet("ocupacao")]
+    public async Task<ActionResult<IEnumerable<OcupacaoReadDto>>> ListarOcupacao(
+        [FromQuery] int pousadaId,
+        [FromQuery] DateTime de,
+        [FromQuery] DateTime ate,
+        CancellationToken cancellationToken)
+    {
+        var ocupacao = await _disponibilidadeService.ListarOcupacaoAsync(pousadaId, de, ate, cancellationToken);
+        return Ok(ocupacao);
+    }
+
+    [HttpPost("verificar-disponibilidade")]
+    public async Task<ActionResult<VerificarDisponibilidadeResultDto>> VerificarDisponibilidade(
+        [FromBody] VerificarDisponibilidadeDto dto,
+        CancellationToken cancellationToken)
+    {
+        var disponivel = await _disponibilidadeService.QuartoDisponivelAsync(
+            dto.QuartoId, dto.DataEntrada, dto.DataSaida, dto.ReservaIdIgnorar, cancellationToken);
+
+        return Ok(new VerificarDisponibilidadeResultDto { Disponivel = disponivel });
     }
 
     [HttpGet]

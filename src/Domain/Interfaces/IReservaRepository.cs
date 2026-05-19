@@ -15,4 +15,11 @@ public interface IReservaRepository
         DateTime dataSaida,
         int? ignorarReservaId,
         CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Reserva>> ListarOcupacaoPorPousadaAsync(
+        int usuarioId,
+        int pousadaId,
+        DateTime de,
+        DateTime ate,
+        CancellationToken cancellationToken = default);
 }

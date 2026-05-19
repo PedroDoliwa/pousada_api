@@ -74,4 +74,28 @@ public sealed class ReservaRepository : IReservaRepository
             r => r.DataEntrada < dataSaida && r.DataSaida > dataEntrada,
             cancellationToken);
     }
+
+    public async Task<IEnumerable<Reserva>> ListarOcupacaoPorPousadaAsync(
+        int usuarioId,
+        int pousadaId,
+        DateTime de,
+        DateTime ate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _db.Reservas
+            .Include(r => r.Quarto)
+            .ThenInclude(q => q!.Pousada)
+            .Include(r => r.Hospede)
+            .AsNoTracking()
+            .Where(r =>
+                r.Quarto != null &&
+                r.Quarto.Pousada != null &&
+                r.Quarto.Pousada.UsuarioId == usuarioId &&
+                r.Quarto.PousadaId == pousadaId &&
+                r.Status != "Cancelada" &&
+                r.DataEntrada < ate &&
+                r.DataSaida > de)
+            .OrderBy(r => r.DataEntrada)
+            .ToListAsync(cancellationToken);
+    }
 }
