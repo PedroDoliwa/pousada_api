@@ -14,9 +14,12 @@ public sealed class QuartoRepository : IQuartoRepository
         _db = db;
     }
 
-    public async Task<IEnumerable<Quarto>> ListarAsync(int? pousadaId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Quarto>> ListarPorUsuarioAsync(int usuarioId, int? pousadaId, CancellationToken cancellationToken = default)
     {
-        var query = _db.Quartos.Include(q => q.Pousada).AsNoTracking().AsQueryable();
+        var query = _db.Quartos
+            .Include(q => q.Pousada)
+            .AsNoTracking()
+            .Where(q => q.Pousada != null && q.Pousada.UsuarioId == usuarioId);
 
         if (pousadaId.HasValue)
             query = query.Where(q => q.PousadaId == pousadaId.Value);
@@ -24,22 +27,19 @@ public sealed class QuartoRepository : IQuartoRepository
         return await query.ToListAsync(cancellationToken);
     }
 
-    public Task<Quarto?> ObterPorIdComPousadaAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Quarto?> ObterPorIdEUsuarioAsync(int id, int usuarioId, CancellationToken cancellationToken = default)
     {
-        return _db.Quartos
+        return await _db.Quartos
             .Include(q => q.Pousada)
             .AsNoTracking()
-            .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(q => q.Id == id && q.Pousada != null && q.Pousada.UsuarioId == usuarioId, cancellationToken);
     }
 
     public Task<Quarto?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return _db.Quartos.FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
-    }
-
-    public Task<bool> PousadaExisteAsync(int pousadaId, CancellationToken cancellationToken = default)
-    {
-        return _db.Pousadas.AnyAsync(p => p.Id == pousadaId, cancellationToken);
+        return _db.Quartos
+            .Include(q => q.Pousada)
+            .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
     }
 
     public async Task AdicionarAsync(Quarto quarto, CancellationToken cancellationToken = default)

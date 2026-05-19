@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PousadaApi.Application.DTOs;
 using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
@@ -7,6 +8,7 @@ namespace PousadaApi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PousadasController : ControllerBase
 {
     private readonly IPousadaService _pousadaService;
@@ -60,7 +62,6 @@ public class PousadasController : ControllerBase
     {
         var pousada = new Pousada
         {
-            UsuarioId = dto.UsuarioId,
             Nome = dto.Nome,
             Descricao = dto.Descricao,
             Endereco = dto.Endereco,

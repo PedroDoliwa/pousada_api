@@ -34,4 +34,6 @@ public class Pousada
 
     // Relacionamento com Quartos
     public ICollection<Quarto> Quartos { get; set; } = new List<Quarto>();
+
+    public ICollection<Hospede> Hospedes { get; set; } = new List<Hospede>();
 }

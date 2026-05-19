@@ -1,4 +1,5 @@
-﻿using PousadaApi.Application.Interfaces;
+﻿using PousadaApi.Application.Exceptions;
+using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
 using PousadaApi.Domain.Interfaces;
 
@@ -8,30 +9,60 @@ public class ReservaService : IReservaService
 {
     private readonly IReservaRepository _reservaRepository;
     private readonly IQuartoRepository _quartoRepository;
+    private readonly IHospedeRepository _hospedeRepository;
+    private readonly IPousadaRepository _pousadaRepository;
+    private readonly ICurrentUserService _currentUser;
 
-    public ReservaService(IReservaRepository reservaRepository, IQuartoRepository quartoRepository)
+    public ReservaService(
+        IReservaRepository reservaRepository,
+        IQuartoRepository quartoRepository,
+        IHospedeRepository hospedeRepository,
+        IPousadaRepository pousadaRepository,
+        ICurrentUserService currentUser)
     {
         _reservaRepository = reservaRepository;
         _quartoRepository = quartoRepository;
+        _hospedeRepository = hospedeRepository;
+        _pousadaRepository = pousadaRepository;
+        _currentUser = currentUser;
     }
 
-    public Task<IEnumerable<Reserva>> ListarAsync(int? pousadaId = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Reserva>> ListarAsync(int? pousadaId = null, CancellationToken cancellationToken = default)
     {
-        return _reservaRepository.ListarComRelacionamentosAsync(pousadaId, cancellationToken);
+        if (pousadaId.HasValue)
+        {
+            var pertence = await _pousadaRepository.PertenceAoUsuarioAsync(pousadaId.Value, _currentUser.UserId, cancellationToken);
+            if (!pertence)
+                throw new AcessoNegadoException();
+        }
+
+        return await _reservaRepository.ListarPorUsuarioAsync(_currentUser.UserId, pousadaId, cancellationToken);
     }
 
     public Task<Reserva?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return _reservaRepository.ObterPorIdComRelacionamentosAsync(id, cancellationToken);
+        return _reservaRepository.ObterPorIdEUsuarioAsync(id, _currentUser.UserId, cancellationToken);
     }
 
     public async Task<Reserva> CriarAsync(Reserva reserva, CancellationToken cancellationToken = default)
     {
-        var quarto = await _quartoRepository.ObterPorIdAsync(reserva.QuartoId, cancellationToken);
-        if (quarto == null) throw new InvalidOperationException("Quarto não encontrado.");
+        reserva.DataEntrada = ToUtc(reserva.DataEntrada);
+        reserva.DataSaida = ToUtc(reserva.DataSaida);
+
+        var quarto = await _quartoRepository.ObterPorIdEUsuarioAsync(reserva.QuartoId, _currentUser.UserId, cancellationToken);
+        if (quarto == null)
+            throw new AcessoNegadoException();
+
+        var hospede = await _hospedeRepository.ObterPorIdEUsuarioAsync(reserva.HospedeId, _currentUser.UserId, cancellationToken);
+        if (hospede == null)
+            throw new AcessoNegadoException();
+
+        if (hospede.PousadaId != quarto.PousadaId)
+            throw new InvalidOperationException("Hóspede não pertence à mesma pousada do quarto.");
 
         var disponivel = await QuartoDisponivelAsync(reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, null, cancellationToken);
-        if (!disponivel) throw new InvalidOperationException("Quarto indisponível no período informado.");
+        if (!disponivel)
+            throw new InvalidOperationException("Quarto indisponível no período informado.");
 
         var nights = (int)(reserva.DataSaida.Date - reserva.DataEntrada.Date).TotalDays;
         if (nights < 1) nights = 1;
@@ -44,11 +75,27 @@ public class ReservaService : IReservaService
 
     public async Task AtualizarAsync(Reserva reserva, CancellationToken cancellationToken = default)
     {
-        var quarto = await _quartoRepository.ObterPorIdAsync(reserva.QuartoId, cancellationToken);
-        if (quarto == null) throw new InvalidOperationException("Quarto não encontrado.");
+        reserva.DataEntrada = ToUtc(reserva.DataEntrada);
+        reserva.DataSaida = ToUtc(reserva.DataSaida);
+
+        var existente = await _reservaRepository.ObterPorIdEUsuarioAsync(reserva.Id, _currentUser.UserId, cancellationToken);
+        if (existente is null)
+            throw new AcessoNegadoException();
+
+        var quarto = await _quartoRepository.ObterPorIdEUsuarioAsync(reserva.QuartoId, _currentUser.UserId, cancellationToken);
+        if (quarto == null)
+            throw new AcessoNegadoException();
+
+        var hospede = await _hospedeRepository.ObterPorIdEUsuarioAsync(reserva.HospedeId, _currentUser.UserId, cancellationToken);
+        if (hospede == null)
+            throw new AcessoNegadoException();
+
+        if (hospede.PousadaId != quarto.PousadaId)
+            throw new InvalidOperationException("Hóspede não pertence à mesma pousada do quarto.");
 
         var disponivel = await QuartoDisponivelAsync(reserva.QuartoId, reserva.DataEntrada, reserva.DataSaida, reserva.Id, cancellationToken);
-        if (!disponivel) throw new InvalidOperationException("Quarto indisponível no período informado.");
+        if (!disponivel)
+            throw new InvalidOperationException("Quarto indisponível no período informado.");
 
         var nights = (int)(reserva.DataSaida.Date - reserva.DataEntrada.Date).TotalDays;
         if (nights < 1) nights = 1;
@@ -59,19 +106,36 @@ public class ReservaService : IReservaService
 
     public async Task CancelarAsync(int id, CancellationToken cancellationToken = default)
     {
-        var reserva = await _reservaRepository.ObterPorIdRastreadoAsync(id, cancellationToken);
-        if (reserva == null) return;
+        var reserva = await _reservaRepository.ObterPorIdEUsuarioAsync(id, _currentUser.UserId, cancellationToken);
+        if (reserva is null)
+            throw new AcessoNegadoException();
 
-        reserva.Status = "Cancelada";
-        await _reservaRepository.AtualizarAsync(reserva, cancellationToken);
+        var rastreada = await _reservaRepository.ObterPorIdRastreadoAsync(id, cancellationToken);
+        if (rastreada is null)
+            throw new AcessoNegadoException();
+
+        rastreada.Status = "Cancelada";
+        await _reservaRepository.AtualizarAsync(rastreada, cancellationToken);
     }
 
     public async Task<bool> QuartoDisponivelAsync(int quartoId, DateTime dataEntrada, DateTime dataSaida, int? reservaIdIgnorar = null, CancellationToken cancellationToken = default)
     {
         if (dataEntrada >= dataSaida) return false;
 
+        var quarto = await _quartoRepository.ObterPorIdEUsuarioAsync(quartoId, _currentUser.UserId, cancellationToken);
+        if (quarto is null)
+            return false;
+
         var overlap = await _reservaRepository.ExisteSobreposicaoNoQuartoAsync(
             quartoId, dataEntrada, dataSaida, reservaIdIgnorar, cancellationToken);
         return !overlap;
     }
+
+    private static DateTime ToUtc(DateTime value) =>
+        value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
 }

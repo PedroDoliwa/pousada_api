@@ -43,11 +43,16 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<int>("PousadaId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Telefone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PousadaId");
 
                     b.ToTable("Hospedes");
                 });
@@ -206,6 +211,17 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("PousadaApi.Domain.Entities.Hospede", b =>
+                {
+                    b.HasOne("PousadaApi.Domain.Entities.Pousada", "Pousada")
+                        .WithMany("Hospedes")
+                        .HasForeignKey("PousadaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pousada");
+                });
+
             modelBuilder.Entity("PousadaApi.Domain.Entities.Pousada", b =>
                 {
                     b.HasOne("PousadaApi.Domain.Entities.Usuario", "Usuario")
@@ -254,6 +270,8 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PousadaApi.Domain.Entities.Pousada", b =>
                 {
+                    b.Navigation("Hospedes");
+
                     b.Navigation("Quartos");
                 });
 

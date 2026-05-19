@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PousadaApi.Application.DTOs;
 using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
@@ -7,6 +8,7 @@ namespace PousadaApi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class QuartosController : ControllerBase
 {
     private readonly IQuartoService _quartoService;

@@ -14,21 +14,26 @@ public sealed class PousadaRepository : IPousadaRepository
         _db = db;
     }
 
-    public async Task<IEnumerable<Pousada>> ListarComQuartosAsync(CancellationToken cancellationToken = default)
-    {
-        var list = await _db.Pousadas
-            .Include(p => p.Quartos)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-        return list;
-    }
-
-    public async Task<Pousada?> ObterPorIdComQuartosAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Pousada>> ListarPorUsuarioAsync(int usuarioId, CancellationToken cancellationToken = default)
     {
         return await _db.Pousadas
             .Include(p => p.Quartos)
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+            .Where(p => p.UsuarioId == usuarioId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Pousada?> ObterPorIdEUsuarioAsync(int id, int usuarioId, CancellationToken cancellationToken = default)
+    {
+        return await _db.Pousadas
+            .Include(p => p.Quartos)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuarioId, cancellationToken);
+    }
+
+    public Task<bool> PertenceAoUsuarioAsync(int pousadaId, int usuarioId, CancellationToken cancellationToken = default)
+    {
+        return _db.Pousadas.AnyAsync(p => p.Id == pousadaId && p.UsuarioId == usuarioId, cancellationToken);
     }
 
     public async Task AdicionarAsync(Pousada pousada, CancellationToken cancellationToken = default)

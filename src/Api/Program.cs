@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using PousadaApi.Infrastructure.Data;
-using PousadaApi.Application.Services;
+using PousadaApi.Api.Configurations;
+using PousadaApi.Api.Middlewares;
+using PousadaApi.Infrastructure.Data.Context;
 
 string? dotEnvPath = null;
 foreach (var start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
@@ -47,6 +47,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("FrontDev");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

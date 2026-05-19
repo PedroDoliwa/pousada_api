@@ -14,27 +14,31 @@ public sealed class ReservaRepository : IReservaRepository
         _db = db;
     }
 
-    public async Task<IEnumerable<Reserva>> ListarComRelacionamentosAsync(int? pousadaId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Reserva>> ListarPorUsuarioAsync(int usuarioId, int? pousadaId, CancellationToken cancellationToken = default)
     {
         var query = _db.Reservas
             .Include(r => r.Quarto)
+            .ThenInclude(q => q!.Pousada)
             .Include(r => r.Hospede)
             .AsNoTracking()
-            .AsQueryable();
+            .Where(r => r.Quarto != null && r.Quarto.Pousada != null && r.Quarto.Pousada.UsuarioId == usuarioId);
 
         if (pousadaId.HasValue)
-            query = query.Where(r => r.Quarto != null && r.Quarto.PousadaId == pousadaId.Value);
+            query = query.Where(r => r.Quarto!.PousadaId == pousadaId.Value);
 
         return await query.OrderByDescending(r => r.DataEntrada).ToListAsync(cancellationToken);
     }
 
-    public Task<Reserva?> ObterPorIdComRelacionamentosAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Reserva?> ObterPorIdEUsuarioAsync(int id, int usuarioId, CancellationToken cancellationToken = default)
     {
-        return _db.Reservas
+        return await _db.Reservas
             .Include(r => r.Quarto)
+            .ThenInclude(q => q!.Pousada)
             .Include(r => r.Hospede)
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(
+                r => r.Id == id && r.Quarto != null && r.Quarto.Pousada != null && r.Quarto.Pousada.UsuarioId == usuarioId,
+                cancellationToken);
     }
 
     public Task<Reserva?> ObterPorIdRastreadoAsync(int id, CancellationToken cancellationToken = default)

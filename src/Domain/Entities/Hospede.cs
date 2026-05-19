@@ -20,5 +20,8 @@ public class Hospede
     [StringLength(20)]
     public string? Documento { get; set; }
 
+    public int PousadaId { get; set; }
+    public Pousada? Pousada { get; set; }
+
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
 }

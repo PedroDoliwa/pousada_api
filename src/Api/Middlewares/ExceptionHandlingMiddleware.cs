@@ -1,5 +1,6 @@
 ﻿using System.Net.Mime;
 using System.Text.Json;
+using PousadaApi.Application.Exceptions;
 
 namespace PousadaApi.Api.Middlewares;
 
@@ -36,7 +37,9 @@ public sealed class ExceptionHandlingMiddleware
     {
         var (status, message) = exception switch
         {
+            AcessoNegadoException => (StatusCodes.Status404NotFound, "Recurso não encontrado."),
             InvalidOperationException inv => (StatusCodes.Status400BadRequest, inv.Message),
+            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Usuário não autenticado."),
             _ => (StatusCodes.Status500InternalServerError, "Ocorreu um erro ao processar a solicitação.")
         };
 

@@ -2,6 +2,7 @@ namespace PousadaApi.Application.DTOs;
 
 public class HospedeCreateDto
 {
+    public int PousadaId { get; set; }
     public string Nome { get; set; } = string.Empty;
     public string? Telefone { get; set; }
     public string? Email { get; set; }

@@ -14,19 +14,30 @@ public sealed class HospedeRepository : IHospedeRepository
         _db = db;
     }
 
-    public async Task<IEnumerable<Hospede>> ListarAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Hospede>> ListarPorUsuarioAsync(int usuarioId, int? pousadaId, CancellationToken cancellationToken = default)
     {
-        return await _db.Hospedes
+        var query = _db.Hospedes
+            .Include(h => h.Pousada)
             .AsNoTracking()
-            .OrderBy(h => h.Nome)
-            .ToListAsync(cancellationToken);
+            .Where(h => h.Pousada != null && h.Pousada.UsuarioId == usuarioId);
+
+        if (pousadaId.HasValue)
+            query = query.Where(h => h.PousadaId == pousadaId.Value);
+
+        return await query.OrderBy(h => h.Nome).ToListAsync(cancellationToken);
     }
 
-    public Task<Hospede?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Hospede?> ObterPorIdEUsuarioAsync(int id, int usuarioId, CancellationToken cancellationToken = default)
     {
-        return _db.Hospedes
+        return await _db.Hospedes
+            .Include(h => h.Pousada)
             .AsNoTracking()
-            .FirstOrDefaultAsync(h => h.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(h => h.Id == id && h.Pousada != null && h.Pousada.UsuarioId == usuarioId, cancellationToken);
+    }
+
+    public Task<bool> PousadaPertenceAoUsuarioAsync(int pousadaId, int usuarioId, CancellationToken cancellationToken = default)
+    {
+        return _db.Pousadas.AnyAsync(p => p.Id == pousadaId && p.UsuarioId == usuarioId, cancellationToken);
     }
 
     public async Task AdicionarAsync(Hospede hospede, CancellationToken cancellationToken = default)

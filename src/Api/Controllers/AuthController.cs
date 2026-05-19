@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PousadaApi.Application.DTOs;
 using PousadaApi.Application.Interfaces;
 
@@ -6,6 +7,7 @@ namespace PousadaApi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -18,7 +20,7 @@ public class AuthController : ControllerBase
     [HttpPost("registro")]
     public async Task<ActionResult<UsuarioTokenDto>> Registrar([FromBody] UsuarioCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var usuario = await _authService.ResgistrarAsync(dto.Nome, dto.Email, dto.Senha, dto.Perfil);
+        var usuario = await _authService.ResgistrarAsync(dto.Nome, dto.Email, dto.Senha, "Gerente");
         var token = _authService.GerarToken(usuario);
 
         var resposta = new UsuarioTokenDto

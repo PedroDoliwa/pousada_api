@@ -53,6 +53,9 @@ public class PousadaDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Nome).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.PousadaId).IsRequired();
+            entity.HasIndex(e => e.PousadaId);
+            entity.HasOne(e => e.Pousada).WithMany(p => p.Hospedes).HasForeignKey(e => e.PousadaId).OnDelete(DeleteBehavior.Restrict);
             entity.HasMany(e => e.Reservas).WithOne(r => r.Hospede).HasForeignKey(r => r.HospedeId);
         });
 

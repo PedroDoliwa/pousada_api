@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PousadaApi.Application.DTOs;
 using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
@@ -7,6 +8,7 @@ namespace PousadaApi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class HospedesController : ControllerBase
 {
     private readonly IHospedeService _hospedeService;
@@ -17,12 +19,13 @@ public class HospedesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<HospedeReadDto>>> ListarHospedes(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<HospedeReadDto>>> ListarHospedes([FromQuery] int? pousadaId, CancellationToken cancellationToken)
     {
-        var hospedes = await _hospedeService.ListarAsync(cancellationToken);
+        var hospedes = await _hospedeService.ListarAsync(pousadaId, cancellationToken);
         var result = hospedes.Select(h => new HospedeReadDto
         {
             Id = h.Id,
+            PousadaId = h.PousadaId,
             Nome = h.Nome,
             Telefone = h.Telefone,
             Email = h.Email,
@@ -42,6 +45,7 @@ public class HospedesController : ControllerBase
         var result = new HospedeReadDto
         {
             Id = hospede.Id,
+            PousadaId = hospede.PousadaId,
             Nome = hospede.Nome,
             Telefone = hospede.Telefone,
             Email = hospede.Email,
@@ -56,6 +60,7 @@ public class HospedesController : ControllerBase
     {
         var hospede = new Hospede
         {
+            PousadaId = dto.PousadaId,
             Nome = dto.Nome,
             Telefone = dto.Telefone,
             Email = dto.Email,
@@ -67,6 +72,7 @@ public class HospedesController : ControllerBase
         var result = new HospedeReadDto
         {
             Id = criado.Id,
+            PousadaId = criado.PousadaId,
             Nome = criado.Nome,
             Telefone = criado.Telefone,
             Email = criado.Email,
@@ -90,6 +96,8 @@ public class HospedesController : ControllerBase
         hospede.Telefone = dto.Telefone;
         hospede.Email = dto.Email;
         hospede.Documento = dto.Documento;
+        if (dto.PousadaId.HasValue)
+            hospede.PousadaId = dto.PousadaId.Value;
 
         await _hospedeService.AtualizarAsync(hospede, cancellationToken);
         return NoContent();

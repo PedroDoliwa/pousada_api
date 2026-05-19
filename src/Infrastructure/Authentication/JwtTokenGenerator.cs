@@ -27,7 +27,9 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         {
             Subject = new ClaimsIdentity(new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                 new Claim("id", usuario.Id.ToString()),
+                new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim("email", usuario.Email),
                 new Claim("nome", usuario.Nome),
                 new Claim("perfil", usuario.Perfil)
