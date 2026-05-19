@@ -75,7 +75,7 @@ public class DisponibilidadeService : IDisponibilidadeService
             DataEntrada = r.DataEntrada,
             DataSaida = r.DataSaida,
             Status = r.Status,
-            Origem = "Manual"
+            Origem = r.Origem
         });
     }
 

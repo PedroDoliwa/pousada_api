@@ -6,6 +6,7 @@ using PousadaApi.Domain.Interfaces;
 using PousadaApi.Infrastructure.Authentication;
 using PousadaApi.Infrastructure.Data.Context;
 using PousadaApi.Infrastructure.Data.Repositories;
+using PousadaApi.Infrastructure.Integrations;
 
 namespace PousadaApi.Infrastructure.Configurations;
 
@@ -26,9 +27,17 @@ public static class DependencyInjection
         services.AddScoped<IQuartoRepository, QuartoRepository>();
         services.AddScoped<IHospedeRepository, HospedeRepository>();
         services.AddScoped<IReservaRepository, ReservaRepository>();
+        services.AddScoped<ICalendarioExternoRepository, CalendarioExternoRepository>();
 
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IPasswordHasher, Sha256PasswordHasher>();
+
+        services.AddSingleton<IIcalParser, IcalNetParser>();
+        services.AddHttpClient<IIcalFeedClient, IcalFeedHttpClient>(client =>
+        {
+            var timeoutSeconds = configuration.GetValue("CalendarioSync:TimeoutSegundos", 60);
+            client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+        });
 
         return services;
     }

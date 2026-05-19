@@ -40,6 +40,11 @@ public sealed class HospedeRepository : IHospedeRepository
         return _db.Pousadas.AnyAsync(p => p.Id == pousadaId && p.UsuarioId == usuarioId, cancellationToken);
     }
 
+    public Task<Hospede?> ObterPorNomeEPousadaAsync(string nome, int pousadaId, CancellationToken cancellationToken = default)
+    {
+        return _db.Hospedes.FirstOrDefaultAsync(h => h.PousadaId == pousadaId && h.Nome == nome, cancellationToken);
+    }
+
     public async Task AdicionarAsync(Hospede hospede, CancellationToken cancellationToken = default)
     {
         _db.Hospedes.Add(hospede);

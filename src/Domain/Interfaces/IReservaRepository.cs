@@ -22,4 +22,17 @@ public interface IReservaRepository
         DateTime de,
         DateTime ate,
         CancellationToken cancellationToken = default);
+
+    Task<Reserva?> ObterPorUidExternoAsync(int quartoId, string uidExterno, CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Reserva>> ListarAtivasPorQuartoAsync(int quartoId, CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Reserva>> ListarPorCalendarioExternoAsync(int calendarioExternoId, CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Reserva>> ListarConfirmadasPorPousadaNoPeriodoAsync(
+        int usuarioId,
+        int pousadaId,
+        DateTime de,
+        DateTime ate,
+        CancellationToken cancellationToken = default);
 }

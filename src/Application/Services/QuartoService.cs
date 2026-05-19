@@ -37,6 +37,8 @@ public class QuartoService : IQuartoService
     public async Task<Quarto> CriarAsync(Quarto quarto, CancellationToken cancellationToken = default)
     {
         await ValidarPousadaDoUsuarioAsync(quarto.PousadaId, cancellationToken);
+        if (string.IsNullOrWhiteSpace(quarto.TokenExportacao))
+            quarto.TokenExportacao = Guid.NewGuid().ToString("N");
         await _quartoRepository.AdicionarAsync(quarto, cancellationToken);
         return quarto;
     }

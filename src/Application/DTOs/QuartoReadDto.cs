@@ -1,4 +1,4 @@
-namespace PousadaApi.Application.DTOs;
+﻿namespace PousadaApi.Application.DTOs;
 
 public class QuartoReadDto
 {
@@ -8,4 +8,5 @@ public class QuartoReadDto
     public int Capacidade { get; set; }
     public decimal ValorDiaria { get; set; }
     public string Status { get; set; } = "Disponivel";
+    public string TokenExportacao { get; set; } = string.Empty;
 }

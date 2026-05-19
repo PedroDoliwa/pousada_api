@@ -1,4 +1,4 @@
-namespace PousadaApi.Application.DTOs;
+﻿namespace PousadaApi.Application.DTOs;
 
 public class ReservaReadDto
 {
@@ -10,4 +10,6 @@ public class ReservaReadDto
     public string Status { get; set; } = string.Empty;
     public decimal ValorTotal { get; set; }
     public string? Observacoes { get; set; }
+    public string Origem { get; set; } = "Manual";
+    public string? TituloExterno { get; set; }
 }

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PousadaApi.Api.Configurations;
 using PousadaApi.Api.Middlewares;
 using PousadaApi.Infrastructure.Data.Context;

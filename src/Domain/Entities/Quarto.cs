@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace PousadaApi.Domain.Entities;
 
@@ -23,7 +23,13 @@ public class Quarto
     [StringLength(50)]
     public string Status { get; set; } = "Disponivel";
 
+    [Required]
+    [StringLength(64)]
+    public string TokenExportacao { get; set; } = Guid.NewGuid().ToString("N");
+
     public Pousada? Pousada { get; set; }
 
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
+
+    public ICollection<CalendarioExterno> CalendariosExternos { get; set; } = new List<CalendarioExterno>();
 }

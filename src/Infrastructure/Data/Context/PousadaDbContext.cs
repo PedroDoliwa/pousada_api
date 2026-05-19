@@ -14,6 +14,7 @@ public class PousadaDbContext : DbContext
     public DbSet<Quarto> Quartos { get; set; }
     public DbSet<Hospede> Hospedes { get; set; }
     public DbSet<Reserva> Reservas { get; set; }
+    public DbSet<CalendarioExterno> CalendariosExternos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,8 +46,11 @@ public class PousadaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.NumeroOuNome).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TokenExportacao).IsRequired().HasMaxLength(64);
+            entity.HasIndex(e => e.TokenExportacao).IsUnique();
             entity.HasIndex(e => e.PousadaId);
             entity.HasMany(e => e.Reservas).WithOne(r => r.Quarto).HasForeignKey(r => r.QuartoId);
+            entity.HasMany(e => e.CalendariosExternos).WithOne(c => c.Quarto).HasForeignKey(c => c.QuartoId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Hospede>(entity =>
@@ -59,13 +63,27 @@ public class PousadaDbContext : DbContext
             entity.HasMany(e => e.Reservas).WithOne(r => r.Hospede).HasForeignKey(r => r.HospedeId);
         });
 
+        modelBuilder.Entity<CalendarioExterno>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Canal).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.UrlImportacao).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.UltimoErro).HasMaxLength(2000);
+            entity.HasIndex(e => e.QuartoId);
+        });
+
         modelBuilder.Entity<Reserva>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Origem).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.UidExterno).HasMaxLength(500);
+            entity.Property(e => e.TituloExterno).HasMaxLength(500);
             entity.Property(e => e.DataEntrada).IsRequired();
             entity.Property(e => e.DataSaida).IsRequired();
             entity.HasIndex(e => new { e.DataEntrada, e.DataSaida });
+            entity.HasIndex(e => new { e.QuartoId, e.UidExterno }).IsUnique().HasFilter("\"UidExterno\" IS NOT NULL");
+            entity.HasOne(e => e.CalendarioExterno).WithMany(c => c.Reservas).HasForeignKey(e => e.CalendarioExternoId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

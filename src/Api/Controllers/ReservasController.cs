@@ -55,7 +55,9 @@ public class ReservasController : ControllerBase
             DataSaida = r.DataSaida,
             Status = r.Status,
             ValorTotal = r.ValorTotal,
-            Observacoes = r.Observacoes
+            Observacoes = r.Observacoes,
+            Origem = r.Origem,
+            TituloExterno = r.TituloExterno
         }).ToList();
 
         return Ok(result);
@@ -77,7 +79,9 @@ public class ReservasController : ControllerBase
             DataSaida = reserva.DataSaida,
             Status = reserva.Status,
             ValorTotal = reserva.ValorTotal,
-            Observacoes = reserva.Observacoes
+            Observacoes = reserva.Observacoes,
+            Origem = reserva.Origem,
+            TituloExterno = reserva.TituloExterno
         };
 
         return Ok(result);
@@ -106,7 +110,9 @@ public class ReservasController : ControllerBase
             DataSaida = criada.DataSaida,
             Status = criada.Status,
             ValorTotal = criada.ValorTotal,
-            Observacoes = criada.Observacoes
+            Observacoes = criada.Observacoes,
+            Origem = criada.Origem,
+            TituloExterno = criada.TituloExterno
         };
 
         return CreatedAtAction(nameof(ObterReserva), new { id = criada.Id }, result);

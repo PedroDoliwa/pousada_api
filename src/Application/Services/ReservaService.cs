@@ -1,5 +1,6 @@
 ﻿using PousadaApi.Application.Exceptions;
 using PousadaApi.Application.Interfaces;
+using PousadaApi.Domain.Constants;
 using PousadaApi.Domain.Entities;
 using PousadaApi.Domain.Interfaces;
 
@@ -72,6 +73,7 @@ public class ReservaService : IReservaService
         if (nights < 1) nights = 1;
         reserva.ValorTotal = nights * quarto.ValorDiaria;
         reserva.Status = reserva.Status ?? "Confirmada";
+        reserva.Origem = ReservaOrigens.Manual;
 
         await _reservaRepository.AdicionarAsync(reserva, cancellationToken);
         return reserva;

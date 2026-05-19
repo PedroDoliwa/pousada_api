@@ -98,4 +98,49 @@ public sealed class ReservaRepository : IReservaRepository
             .OrderBy(r => r.DataEntrada)
             .ToListAsync(cancellationToken);
     }
+
+    public Task<Reserva?> ObterPorUidExternoAsync(int quartoId, string uidExterno, CancellationToken cancellationToken = default)
+    {
+        return _db.Reservas.FirstOrDefaultAsync(
+            r => r.QuartoId == quartoId && r.UidExterno == uidExterno,
+            cancellationToken);
+    }
+
+    public async Task<IEnumerable<Reserva>> ListarAtivasPorQuartoAsync(int quartoId, CancellationToken cancellationToken = default)
+    {
+        return await _db.Reservas
+            .AsNoTracking()
+            .Where(r => r.QuartoId == quartoId && r.Status != "Cancelada")
+            .OrderBy(r => r.DataEntrada)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Reserva>> ListarPorCalendarioExternoAsync(int calendarioExternoId, CancellationToken cancellationToken = default)
+    {
+        return await _db.Reservas
+            .Where(r => r.CalendarioExternoId == calendarioExternoId && r.Status != "Cancelada")
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Reserva>> ListarConfirmadasPorPousadaNoPeriodoAsync(
+        int usuarioId,
+        int pousadaId,
+        DateTime de,
+        DateTime ate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _db.Reservas
+            .Include(r => r.Quarto)
+            .ThenInclude(q => q!.Pousada)
+            .AsNoTracking()
+            .Where(r =>
+                r.Quarto != null &&
+                r.Quarto.Pousada != null &&
+                r.Quarto.Pousada.UsuarioId == usuarioId &&
+                r.Quarto.PousadaId == pousadaId &&
+                r.Status != "Cancelada" &&
+                r.DataEntrada < ate &&
+                r.DataSaida > de)
+            .ToListAsync(cancellationToken);
+    }
 }

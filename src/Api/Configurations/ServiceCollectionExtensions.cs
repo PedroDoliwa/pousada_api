@@ -23,7 +23,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHospedeService, HospedeService>();
         services.AddScoped<IReservaService, ReservaService>();
         services.AddScoped<IDisponibilidadeService, DisponibilidadeService>();
+        services.AddScoped<ICalendarioExternoService, CalendarioExternoService>();
+        services.AddScoped<IIcalExportService, IcalExportService>();
+        services.AddScoped<IMetricasService, MetricasService>();
         services.AddScoped<IAuthService, AuthService>();
+
+        services.AddHostedService<BackgroundServices.CalendarioSyncBackgroundService>();
 
         var secretKey = configuration["Jwt:SecretKey"]
             ?? throw new InvalidOperationException("JWT SecretKey não configurada");

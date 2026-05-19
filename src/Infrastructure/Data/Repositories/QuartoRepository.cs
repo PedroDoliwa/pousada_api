@@ -42,6 +42,14 @@ public sealed class QuartoRepository : IQuartoRepository
             .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
     }
 
+    public Task<Quarto?> ObterPorTokenExportacaoAsync(string tokenExportacao, CancellationToken cancellationToken = default)
+    {
+        return _db.Quartos
+            .Include(q => q.Pousada)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(q => q.TokenExportacao == tokenExportacao, cancellationToken);
+    }
+
     public async Task AdicionarAsync(Quarto quarto, CancellationToken cancellationToken = default)
     {
         _db.Quartos.Add(quarto);

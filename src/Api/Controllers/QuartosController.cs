@@ -12,10 +12,12 @@ namespace PousadaApi.Api.Controllers;
 public class QuartosController : ControllerBase
 {
     private readonly IQuartoService _quartoService;
+    private readonly IIcalExportService _icalExportService;
 
-    public QuartosController(IQuartoService quartoService)
+    public QuartosController(IQuartoService quartoService, IIcalExportService icalExportService)
     {
         _quartoService = quartoService;
+        _icalExportService = icalExportService;
     }
 
     [HttpGet]
@@ -29,9 +31,31 @@ public class QuartosController : ControllerBase
             NumeroOuNome = q.NumeroOuNome,
             Capacidade = q.Capacidade,
             ValorDiaria = q.ValorDiaria,
-            Status = q.Status
+            Status = q.Status,
+            TokenExportacao = q.TokenExportacao
         }).ToList();
         return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{id}/calendario.ics")]
+    public async Task<IActionResult> ExportarCalendario(int id, [FromQuery] string? token, CancellationToken cancellationToken)
+    {
+        string ics;
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            ics = await _icalExportService.GerarCalendarioPorTokenAsync(token, cancellationToken);
+        }
+        else if (User.Identity?.IsAuthenticated == true)
+        {
+            ics = await _icalExportService.GerarCalendarioQuartoAsync(id, cancellationToken);
+        }
+        else
+        {
+            return Unauthorized(new { message = "Informe o parâmetro token ou autentique-se com Bearer JWT." });
+        }
+
+        return Content(ics, "text/calendar");
     }
 
     [HttpGet("{id}")]
@@ -48,7 +72,8 @@ public class QuartosController : ControllerBase
             NumeroOuNome = quarto.NumeroOuNome,
             Capacidade = quarto.Capacidade,
             ValorDiaria = quarto.ValorDiaria,
-            Status = quarto.Status
+            Status = quarto.Status,
+            TokenExportacao = quarto.TokenExportacao
         };
         return Ok(result);
     }
@@ -74,7 +99,8 @@ public class QuartosController : ControllerBase
             NumeroOuNome = criado.NumeroOuNome,
             Capacidade = criado.Capacidade,
             ValorDiaria = criado.ValorDiaria,
-            Status = criado.Status
+            Status = criado.Status,
+            TokenExportacao = criado.TokenExportacao
         };
         return CreatedAtAction(nameof(ObterQuarto), new { id = criado.Id }, result);
     }
