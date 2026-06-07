@@ -44,7 +44,12 @@ public class IcalExportService : IIcalExportService
     private async Task<string> GerarIcsAsync(int quartoId, string nomeQuarto, CancellationToken cancellationToken)
     {
         var reservas = await _reservaRepository.ListarAtivasPorQuartoAsync(quartoId, cancellationToken);
-        var calendar = new Calendar { Name = $"Pousada API - Quarto {nomeQuarto}" };
+        var calendar = new Calendar
+        {
+            ProductId = "-//Pousada API//Reservas//PT-BR",
+            Scale = "GREGORIAN"
+        };
+        calendar.AddProperty("X-WR-CALNAME", $"Pousada API - Quarto {nomeQuarto}");
 
         foreach (var reserva in reservas)
         {
