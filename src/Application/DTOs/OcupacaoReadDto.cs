@@ -11,4 +11,6 @@ public class OcupacaoReadDto
     public DateTime DataSaida { get; set; }
     public string Status { get; set; } = string.Empty;
     public string Origem { get; set; } = "Manual";
+    public string? TituloExterno { get; set; }
+    public string? Observacoes { get; set; }
 }

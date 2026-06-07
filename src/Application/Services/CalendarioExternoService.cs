@@ -126,7 +126,6 @@ public class CalendarioExternoService : ICalendarioExternoService
             if (quarto is null)
                 throw new InvalidOperationException("Quarto não encontrado.");
 
-            var hospedeId = await ObterOuCriarHospedeCanalAsync(quarto.PousadaId, calendario.Canal, cancellationToken);
             var uidsNoFeed = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var evt in eventos)
@@ -135,6 +134,17 @@ public class CalendarioExternoService : ICalendarioExternoService
                     continue;
 
                 uidsNoFeed.Add(evt.Uid);
+                var ehBloqueioIndisponibilidade = EhBloqueioIndisponibilidade(calendario, evt);
+                var hospedeId = await ObterOuCriarHospedeCanalAsync(
+                    quarto.PousadaId,
+                    calendario.Canal,
+                    ehBloqueioIndisponibilidade,
+                    cancellationToken);
+                var status = ehBloqueioIndisponibilidade ? ReservaStatus.Bloqueada : ReservaStatus.Confirmada;
+                var titulo = ehBloqueioIndisponibilidade ? $"Bloqueio {calendario.Canal}" : evt.Titulo;
+                var observacoes = ehBloqueioIndisponibilidade
+                    ? $"Periodo indisponivel importado de {calendario.Canal}"
+                    : $"Importado de {calendario.Canal}";
 
                 var existente = await _reservaRepository.ObterPorUidExternoAsync(calendario.QuartoId, evt.Uid, cancellationToken);
                 if (existente is not null && existente.Origem == ReservaOrigens.Manual)
@@ -159,25 +169,27 @@ public class CalendarioExternoService : ICalendarioExternoService
                         HospedeId = hospedeId,
                         DataEntrada = evt.DataInicio,
                         DataSaida = evt.DataFim,
-                        Status = "Confirmada",
+                        Status = status,
                         ValorTotal = 0,
                         Origem = calendario.Canal,
                         UidExterno = evt.Uid,
                         CalendarioExternoId = calendario.Id,
-                        TituloExterno = evt.Titulo,
+                        TituloExterno = titulo,
                         SincronizadoEm = DateTime.UtcNow,
-                        Observacoes = $"Importado de {calendario.Canal}"
+                        Observacoes = observacoes
                     };
                     await _reservaRepository.AdicionarAsync(reserva, cancellationToken);
                     resultado.Criados++;
                 }
                 else
                 {
+                    existente.HospedeId = hospedeId;
                     existente.DataEntrada = evt.DataInicio;
                     existente.DataSaida = evt.DataFim;
-                    existente.TituloExterno = evt.Titulo;
+                    existente.TituloExterno = titulo;
                     existente.SincronizadoEm = DateTime.UtcNow;
-                    existente.Status = "Confirmada";
+                    existente.Status = status;
+                    existente.Observacoes = observacoes;
                     await _reservaRepository.AtualizarAsync(existente, cancellationToken);
                     resultado.Atualizados++;
                 }
@@ -193,7 +205,7 @@ public class CalendarioExternoService : ICalendarioExternoService
                 if (rastreada is null)
                     continue;
 
-                rastreada.Status = "Cancelada";
+                rastreada.Status = ReservaStatus.Cancelada;
                 rastreada.SincronizadoEm = DateTime.UtcNow;
                 await _reservaRepository.AtualizarAsync(rastreada, cancellationToken);
                 resultado.Cancelados++;
@@ -222,9 +234,15 @@ public class CalendarioExternoService : ICalendarioExternoService
             throw new AcessoNegadoException();
     }
 
-    private async Task<int> ObterOuCriarHospedeCanalAsync(int pousadaId, string canal, CancellationToken cancellationToken)
+    private async Task<int> ObterOuCriarHospedeCanalAsync(
+        int pousadaId,
+        string canal,
+        bool bloqueioIndisponibilidade,
+        CancellationToken cancellationToken)
     {
-        var nome = canal switch
+        var nome = bloqueioIndisponibilidade
+            ? $"Bloqueio {canal}"
+            : canal switch
         {
             ReservaOrigens.Airbnb => "Reserva Airbnb",
             ReservaOrigens.Booking => "Reserva Booking",
@@ -238,6 +256,20 @@ public class CalendarioExternoService : ICalendarioExternoService
         var hospede = new Hospede { PousadaId = pousadaId, Nome = nome };
         await _hospedeRepository.AdicionarAsync(hospede, cancellationToken);
         return hospede.Id;
+    }
+
+    private static bool EhBloqueioIndisponibilidade(CalendarioExterno calendario, IcalEventoDto evt)
+    {
+        if (string.IsNullOrWhiteSpace(evt.Titulo))
+            return false;
+
+        return calendario.Canal switch
+        {
+            ReservaOrigens.Airbnb => evt.Titulo.Contains("Not available", StringComparison.OrdinalIgnoreCase),
+            ReservaOrigens.Booking => evt.Titulo.Contains("Not available", StringComparison.OrdinalIgnoreCase)
+                || evt.Titulo.StartsWith("CLOSED", StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
     }
 
     private static string NormalizarCanal(string canal) =>

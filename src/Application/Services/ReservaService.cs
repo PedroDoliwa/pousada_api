@@ -72,7 +72,7 @@ public class ReservaService : IReservaService
         var nights = (int)(reserva.DataSaida.Date - reserva.DataEntrada.Date).TotalDays;
         if (nights < 1) nights = 1;
         reserva.ValorTotal = nights * quarto.ValorDiaria;
-        reserva.Status = reserva.Status ?? "Confirmada";
+        reserva.Status = reserva.Status ?? ReservaStatus.Confirmada;
         reserva.Origem = ReservaOrigens.Manual;
 
         await _reservaRepository.AdicionarAsync(reserva, cancellationToken);
@@ -121,7 +121,7 @@ public class ReservaService : IReservaService
         if (rastreada is null)
             throw new AcessoNegadoException();
 
-        rastreada.Status = "Cancelada";
+        rastreada.Status = ReservaStatus.Cancelada;
         await _reservaRepository.AtualizarAsync(rastreada, cancellationToken);
     }
 

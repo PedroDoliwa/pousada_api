@@ -21,7 +21,7 @@ public class Reserva
 
     [Required]
     [StringLength(50)]
-    public string Status { get; set; } = "Confirmada";
+    public string Status { get; set; } = ReservaStatus.Confirmada;
 
     [Range(0, double.MaxValue)]
     public decimal ValorTotal { get; set; }

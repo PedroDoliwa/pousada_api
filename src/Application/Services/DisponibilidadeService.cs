@@ -75,7 +75,9 @@ public class DisponibilidadeService : IDisponibilidadeService
             DataEntrada = r.DataEntrada,
             DataSaida = r.DataSaida,
             Status = r.Status,
-            Origem = r.Origem
+            Origem = r.Origem,
+            TituloExterno = r.TituloExterno,
+            Observacoes = r.Observacoes
         });
     }
 

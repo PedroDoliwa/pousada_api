@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PousadaApi.Domain.Constants;
 using PousadaApi.Domain.Entities;
 using PousadaApi.Domain.Interfaces;
 using PousadaApi.Infrastructure.Data.Context;
@@ -65,7 +66,7 @@ public sealed class ReservaRepository : IReservaRepository
         int? ignorarReservaId,
         CancellationToken cancellationToken = default)
     {
-        var query = _db.Reservas.Where(r => r.QuartoId == quartoId && r.Status != "Cancelada");
+        var query = _db.Reservas.Where(r => r.QuartoId == quartoId && r.Status != ReservaStatus.Cancelada);
 
         if (ignorarReservaId.HasValue)
             query = query.Where(r => r.Id != ignorarReservaId.Value);
@@ -92,7 +93,7 @@ public sealed class ReservaRepository : IReservaRepository
                 r.Quarto.Pousada != null &&
                 r.Quarto.Pousada.UsuarioId == usuarioId &&
                 r.Quarto.PousadaId == pousadaId &&
-                r.Status != "Cancelada" &&
+                r.Status != ReservaStatus.Cancelada &&
                 r.DataEntrada < ate &&
                 r.DataSaida > de)
             .OrderBy(r => r.DataEntrada)
@@ -110,7 +111,7 @@ public sealed class ReservaRepository : IReservaRepository
     {
         return await _db.Reservas
             .AsNoTracking()
-            .Where(r => r.QuartoId == quartoId && r.Status != "Cancelada")
+            .Where(r => r.QuartoId == quartoId && r.Status != ReservaStatus.Cancelada)
             .OrderBy(r => r.DataEntrada)
             .ToListAsync(cancellationToken);
     }
@@ -118,7 +119,7 @@ public sealed class ReservaRepository : IReservaRepository
     public async Task<IEnumerable<Reserva>> ListarPorCalendarioExternoAsync(int calendarioExternoId, CancellationToken cancellationToken = default)
     {
         return await _db.Reservas
-            .Where(r => r.CalendarioExternoId == calendarioExternoId && r.Status != "Cancelada")
+            .Where(r => r.CalendarioExternoId == calendarioExternoId && r.Status != ReservaStatus.Cancelada)
             .ToListAsync(cancellationToken);
     }
 
@@ -138,7 +139,7 @@ public sealed class ReservaRepository : IReservaRepository
                 r.Quarto.Pousada != null &&
                 r.Quarto.Pousada.UsuarioId == usuarioId &&
                 r.Quarto.PousadaId == pousadaId &&
-                r.Status != "Cancelada" &&
+                r.Status == ReservaStatus.Confirmada &&
                 r.DataEntrada < ate &&
                 r.DataSaida > de)
             .ToListAsync(cancellationToken);
