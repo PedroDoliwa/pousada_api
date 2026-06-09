@@ -7,6 +7,7 @@ using PousadaApi.Infrastructure.Authentication;
 using PousadaApi.Infrastructure.Data.Context;
 using PousadaApi.Infrastructure.Data.Repositories;
 using PousadaApi.Infrastructure.Integrations;
+using PousadaApi.Infrastructure.Options;
 
 namespace PousadaApi.Infrastructure.Configurations;
 
@@ -38,6 +39,14 @@ public static class DependencyInjection
             var timeoutSeconds = configuration.GetValue("CalendarioSync:TimeoutSegundos", 60);
             client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
         });
+
+        services.AddOptions<OpenAiOptions>()
+            .Bind(configuration.GetSection(OpenAiOptions.SectionName))
+            .PostConfigure(options =>
+            {
+                if (string.IsNullOrWhiteSpace(options.ApiKey))
+                    options.ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "";
+            });
 
         return services;
     }
