@@ -48,6 +48,8 @@ public static class DependencyInjection
                     options.ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "";
             });
 
+        services.AddSingleton<ILlmClient, OpenAiLlmClient>();
+
         return services;
     }
 }
