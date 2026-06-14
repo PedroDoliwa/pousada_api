@@ -22,18 +22,7 @@ public class PousadasController : ControllerBase
     public async Task<ActionResult<IEnumerable<PousadaReadDto>>> ListarPousadas(CancellationToken cancellationToken)
     {
         var pousadas = await _pousadaService.ListarAsync(cancellationToken);
-        var result = pousadas.Select(p => new PousadaReadDto
-        {
-            Id = p.Id,
-            UsuarioId = p.UsuarioId,
-            Nome = p.Nome,
-            Descricao = p.Descricao,
-            Endereco = p.Endereco,
-            Telefone = p.Telefone,
-            Email = p.Email,
-            Ativa = p.Ativa
-        }).ToList();
-        return Ok(result);
+        return Ok(pousadas.Select(MapearPousada).ToList());
     }
 
     [HttpGet("{id}")]
@@ -43,18 +32,7 @@ public class PousadasController : ControllerBase
         if (pousada == null)
             return NotFound(new { message = "Pousada não encontrada" });
 
-        var result = new PousadaReadDto
-        {
-            Id = pousada.Id,
-            UsuarioId = pousada.UsuarioId,
-            Nome = pousada.Nome,
-            Descricao = pousada.Descricao,
-            Endereco = pousada.Endereco,
-            Telefone = pousada.Telefone,
-            Email = pousada.Email,
-            Ativa = pousada.Ativa
-        };
-        return Ok(result);
+        return Ok(MapearPousada(pousada));
     }
 
     [HttpPost]
@@ -71,19 +49,7 @@ public class PousadasController : ControllerBase
         };
 
         var criada = await _pousadaService.CriarAsync(pousada, cancellationToken);
-
-        var result = new PousadaReadDto
-        {
-            Id = criada.Id,
-            UsuarioId = criada.UsuarioId,
-            Nome = criada.Nome,
-            Descricao = criada.Descricao,
-            Endereco = criada.Endereco,
-            Telefone = criada.Telefone,
-            Email = criada.Email,
-            Ativa = criada.Ativa
-        };
-        return CreatedAtAction(nameof(ObterPousada), new { id = criada.Id }, result);
+        return CreatedAtAction(nameof(ObterPousada), new { id = criada.Id }, MapearPousada(criada));
     }
 
     [HttpPut("{id}")]
@@ -116,4 +82,53 @@ public class PousadasController : ControllerBase
         await _pousadaService.RemoverAsync(id, cancellationToken);
         return NoContent();
     }
+
+    [HttpPost("{id}/foto")]
+    [RequestSizeLimit(2 * 1024 * 1024)]
+    public async Task<ActionResult<MensagemDto>> SalvarFoto(int id, IFormFile arquivo, CancellationToken cancellationToken)
+    {
+        if (arquivo is null || arquivo.Length == 0)
+            return BadRequest(new { message = "Arquivo de foto é obrigatório." });
+
+        await using var stream = new MemoryStream();
+        await arquivo.CopyToAsync(stream, cancellationToken);
+
+        await _pousadaService.SalvarFotoAsync(
+            id,
+            stream.ToArray(),
+            arquivo.ContentType,
+            cancellationToken);
+
+        return Ok(new MensagemDto { Message = "Foto da pousada atualizada com sucesso." });
+    }
+
+    [HttpGet("{id}/foto")]
+    public async Task<IActionResult> ObterFoto(int id, CancellationToken cancellationToken)
+    {
+        var (bytes, contentType) = await _pousadaService.ObterFotoAsync(id, cancellationToken);
+        if (bytes is null || contentType is null)
+            return NotFound(new { message = "Foto da pousada não encontrada." });
+
+        return File(bytes, contentType);
+    }
+
+    [HttpDelete("{id}/foto")]
+    public async Task<ActionResult<MensagemDto>> RemoverFoto(int id, CancellationToken cancellationToken)
+    {
+        await _pousadaService.RemoverFotoAsync(id, cancellationToken);
+        return Ok(new MensagemDto { Message = "Foto da pousada removida com sucesso." });
+    }
+
+    private static PousadaReadDto MapearPousada(Pousada pousada) => new()
+    {
+        Id = pousada.Id,
+        UsuarioId = pousada.UsuarioId,
+        Nome = pousada.Nome,
+        Descricao = pousada.Descricao,
+        Endereco = pousada.Endereco,
+        Telefone = pousada.Telefone,
+        Email = pousada.Email,
+        Ativa = pousada.Ativa,
+        TemFoto = pousada.Foto is { Length: > 0 }
+    };
 }

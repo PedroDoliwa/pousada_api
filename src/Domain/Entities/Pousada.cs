@@ -28,6 +28,9 @@ public class Pousada
 
     public bool Ativa { get; set; } = true;
 
+    public byte[]? Foto { get; set; }
+    public string? FotoContentType { get; set; }
+
     // Relacionamento com Usuario (gerenciador)
     public int UsuarioId { get; set; }
     public Usuario Usuario { get; set; }

@@ -10,4 +10,5 @@ public class PousadaReadDto
     public string Telefone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public bool Ativa { get; set; }
+    public bool TemFoto { get; set; }
 }
