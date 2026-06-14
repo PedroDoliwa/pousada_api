@@ -7,7 +7,10 @@ public class Usuario
     public string Email { get; set; }
     public string SenhaHash { get; set; }
     public string Perfil { get; set; } // "Admin", "Gerente", "Funcionario"
-    
+
+    public byte[]? Foto { get; set; }
+    public string? FotoContentType { get; set; }
+
     // Relacionamento com Pousada
     public ICollection<Pousada> Pousadas { get; set; } = new List<Pousada>();
 }

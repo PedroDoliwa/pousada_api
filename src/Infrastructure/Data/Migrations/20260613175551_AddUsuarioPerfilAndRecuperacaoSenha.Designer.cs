@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PousadaApi.Infrastructure.Data.Context;
@@ -11,9 +12,11 @@ using PousadaApi.Infrastructure.Data.Context;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PousadaDbContext))]
-    partial class PousadaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260613175551_AddUsuarioPerfilAndRecuperacaoSenha")]
+    partial class AddUsuarioPerfilAndRecuperacaoSenha
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,13 +122,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
-
-                    b.Property<byte[]>("Foto")
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("FotoContentType")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Nome")
                         .IsRequired()

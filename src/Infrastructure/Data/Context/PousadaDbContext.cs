@@ -15,6 +15,7 @@ public class PousadaDbContext : DbContext
     public DbSet<Hospede> Hospedes { get; set; }
     public DbSet<Reserva> Reservas { get; set; }
     public DbSet<CalendarioExterno> CalendariosExternos { get; set; }
+    public DbSet<UsuarioRecuperacaoSenha> UsuarioRecuperacaoSenhas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,7 +28,17 @@ public class PousadaDbContext : DbContext
             entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
             entity.Property(e => e.SenhaHash).IsRequired();
             entity.Property(e => e.Perfil).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.FotoContentType).HasMaxLength(50);
+            entity.HasIndex(e => e.Email).IsUnique();
             entity.HasMany(e => e.Pousadas).WithOne(p => p.Usuario).HasForeignKey(p => p.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<UsuarioRecuperacaoSenha>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TokenHash).IsRequired().HasMaxLength(128);
+            entity.HasIndex(e => e.TokenHash);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Pousada>(entity =>
@@ -37,6 +48,7 @@ public class PousadaDbContext : DbContext
             entity.Property(e => e.Endereco).IsRequired().HasMaxLength(250);
             entity.Property(e => e.Telefone).IsRequired().HasMaxLength(20);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.FotoContentType).HasMaxLength(50);
             entity.Property(e => e.UsuarioId).IsRequired();
             entity.HasMany(e => e.Quartos).WithOne(q => q.Pousada).HasForeignKey(q => q.PousadaId);
         });

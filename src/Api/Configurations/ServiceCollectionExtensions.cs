@@ -29,6 +29,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConsultaInteligenteService, ConsultaInteligenteService>();
         services.AddScoped<ConsultaToolExecutor>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUsuarioService, UsuarioService>();
+        services.AddScoped<IRecuperacaoSenhaService, RecuperacaoSenhaService>();
 
         services.AddHostedService<BackgroundServices.CalendarioSyncBackgroundService>();
 
