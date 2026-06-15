@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PousadaApi.Api.Services;
 using PousadaApi.Application.Interfaces;
+using PousadaApi.Infrastructure.Authentication;
 using PousadaApi.Application.Services;
 using PousadaApi.Infrastructure.Configurations;
 
@@ -34,8 +35,7 @@ public static class ServiceCollectionExtensions
 
         services.AddHostedService<BackgroundServices.CalendarioSyncBackgroundService>();
 
-        var secretKey = configuration["Jwt:SecretKey"]
-            ?? throw new InvalidOperationException("JWT SecretKey não configurada");
+        var secretKey = JwtSecretKey.ObterValidada(configuration);
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

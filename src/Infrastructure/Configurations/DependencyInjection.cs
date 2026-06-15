@@ -34,7 +34,7 @@ public static class DependencyInjection
         services.AddScoped<ICalendarioExternoRepository, CalendarioExternoRepository>();
 
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
-        services.AddSingleton<IPasswordHasher, Sha256PasswordHasher>();
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
         services.AddSingleton<IIcalParser, IcalNetParser>();
         services.AddHttpClient<IIcalFeedClient, IcalFeedHttpClient>(client =>
