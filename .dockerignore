@@ -1,0 +1,13 @@
+**/.git
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/.env
+**/node_modules
+*.md
+*.png
+*.ics
+iCal
+export.ics
+listing-31374884.ics
