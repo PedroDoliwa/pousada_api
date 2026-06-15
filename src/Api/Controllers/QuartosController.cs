@@ -38,24 +38,34 @@ public class QuartosController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("{id}/calendario/{token}.ics")]
+    public async Task<IActionResult> ExportarCalendarioPorToken(int id, string token, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var ics = await _icalExportService.GerarCalendarioPorTokenAsync(token, cancellationToken);
+            return Content(ics, "text/calendar");
+        }
+        catch (InvalidOperationException)
+        {
+            return Unauthorized(new { message = "Token de exportação inválido." });
+        }
+    }
+
+    [AllowAnonymous]
     [HttpGet("{id}/calendario.ics")]
     public async Task<IActionResult> ExportarCalendario(int id, [FromQuery] string? token, CancellationToken cancellationToken)
     {
-        string ics;
         if (!string.IsNullOrWhiteSpace(token))
+            return await ExportarCalendarioPorToken(id, token, cancellationToken);
+
+        if (User.Identity?.IsAuthenticated == true)
         {
-            ics = await _icalExportService.GerarCalendarioPorTokenAsync(token, cancellationToken);
-        }
-        else if (User.Identity?.IsAuthenticated == true)
-        {
-            ics = await _icalExportService.GerarCalendarioQuartoAsync(id, cancellationToken);
-        }
-        else
-        {
-            return Unauthorized(new { message = "Informe o parâmetro token ou autentique-se com Bearer JWT." });
+            var ics = await _icalExportService.GerarCalendarioQuartoAsync(id, cancellationToken);
+            return Content(ics, "text/calendar");
         }
 
-        return Content(ics, "text/calendar");
+        return Unauthorized(new { message = "Informe o token na URL ou autentique-se com Bearer JWT." });
     }
 
     [HttpGet("{id}")]
