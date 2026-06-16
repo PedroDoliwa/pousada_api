@@ -36,6 +36,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddSingleton<ITokenHasher, Sha256TokenHasher>();
 
         services.AddSingleton<IIcalParser, IcalNetParser>();
         services.AddHttpClient<IIcalFeedClient, IcalFeedHttpClient>(client =>

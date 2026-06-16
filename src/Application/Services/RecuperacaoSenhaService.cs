@@ -15,6 +15,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IUsuarioRecuperacaoSenhaRepository _recuperacaoRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ITokenHasher _tokenHasher;
     private readonly IEmailService _emailService;
     private readonly AppOptions _appOptions;
     private readonly ILogger<RecuperacaoSenhaService> _logger;
@@ -23,6 +24,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
         IUsuarioRepository usuarioRepository,
         IUsuarioRecuperacaoSenhaRepository recuperacaoRepository,
         IPasswordHasher passwordHasher,
+        ITokenHasher tokenHasher,
         IEmailService emailService,
         IOptions<AppOptions> appOptions,
         ILogger<RecuperacaoSenhaService> logger)
@@ -30,6 +32,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
         _usuarioRepository = usuarioRepository;
         _recuperacaoRepository = recuperacaoRepository;
         _passwordHasher = passwordHasher;
+        _tokenHasher = tokenHasher;
         _emailService = emailService;
         _appOptions = appOptions.Value;
         _logger = logger;
@@ -57,7 +60,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(novaSenha))
             throw new InvalidOperationException("Token e nova senha são obrigatórios.");
 
-        var tokenHash = _passwordHasher.Hash(token);
+        var tokenHash = _tokenHasher.Hash(token);
         var recuperacao = await _recuperacaoRepository.ObterValidoPorTokenHashAsync(tokenHash, cancellationToken);
         if (recuperacao is null)
             throw new InvalidOperationException("Token inválido ou expirado.");
@@ -79,7 +82,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
     private async Task EnviarTokenAsync(int usuarioId, string email, CancellationToken cancellationToken)
     {
         var token = GerarToken();
-        var tokenHash = _passwordHasher.Hash(token);
+        var tokenHash = _tokenHasher.Hash(token);
 
         var recuperacao = new UsuarioRecuperacaoSenha
         {
