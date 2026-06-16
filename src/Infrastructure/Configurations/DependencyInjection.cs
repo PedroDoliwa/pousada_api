@@ -10,6 +10,7 @@ using PousadaApi.Infrastructure.Data.Repositories;
 using PousadaApi.Infrastructure.Email;
 using PousadaApi.Infrastructure.Integrations;
 using PousadaApi.Infrastructure.Options;
+using Resend;
 
 namespace PousadaApi.Infrastructure.Configurations;
 
@@ -54,17 +55,20 @@ public static class DependencyInjection
         services.AddOptions<AppOptions>()
             .Bind(configuration.GetSection(AppOptions.SectionName));
 
-        services.AddOptions<SmtpOptions>()
-            .Bind(configuration.GetSection(SmtpOptions.SectionName))
+        services.AddOptions<ResendOptions>()
+            .Bind(configuration.GetSection(ResendOptions.SectionName))
             .PostConfigure(options =>
             {
-                if (string.IsNullOrWhiteSpace(options.Password))
-                    options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
-                if (string.IsNullOrWhiteSpace(options.User))
-                    options.User = Environment.GetEnvironmentVariable("SMTP_USER") ?? "";
+                if (string.IsNullOrWhiteSpace(options.ApiKey))
+                    options.ApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
             });
 
-        services.AddScoped<IEmailService, SmtpEmailService>();
+        var resendApiKey = configuration["Resend:ApiKey"];
+        if (string.IsNullOrWhiteSpace(resendApiKey))
+            resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
+
+        services.AddResend(options => options.ApiToken = resendApiKey);
+        services.AddScoped<IEmailService, ResendEmailService>();
 
         services.AddSingleton<ILlmClient, OpenAiLlmClient>();
 

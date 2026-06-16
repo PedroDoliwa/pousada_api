@@ -100,7 +100,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Falha ao enviar e-mail de redefinição para {Email}", email);
-            throw new InvalidOperationException("Não foi possível enviar o e-mail de redefinição. Verifique a configuração SMTP.");
+            throw new InvalidOperationException("Não foi possível enviar o e-mail de redefinição. Verifique a configuração de e-mail (Resend).");
         }
     }
 
