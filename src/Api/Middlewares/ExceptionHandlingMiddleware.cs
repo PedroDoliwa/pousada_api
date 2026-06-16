@@ -38,6 +38,7 @@ public sealed class ExceptionHandlingMiddleware
         var (status, message) = exception switch
         {
             AcessoNegadoException => (StatusCodes.Status404NotFound, "Recurso não encontrado."),
+            EmailJaCadastradoException emailDup => (StatusCodes.Status409Conflict, emailDup.Message),
             ConsultaInteligenteException consulta => (StatusCodes.Status503ServiceUnavailable, consulta.Message),
             InvalidOperationException inv => (StatusCodes.Status400BadRequest, inv.Message),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Usuário não autenticado."),
