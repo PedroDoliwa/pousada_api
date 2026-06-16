@@ -20,7 +20,7 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
     public string Generate(Usuario usuario)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_secretKey);
+        var key = Encoding.UTF8.GetBytes(_secretKey);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
