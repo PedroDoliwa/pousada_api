@@ -15,6 +15,10 @@ public sealed class BCryptPasswordHasher : IPasswordHasher
 
     public bool Verify(string password, string hash)
     {
+        // Sem senha ou sem hash armazenado não há o que validar (ex.: seed placeholder).
+        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
+            return false;
+
         // Hashes BCrypt sempre começam com "$2"; hashes antigos (SHA256 em Base64) não.
         // Mantemos a verificação legada para não travar usuários criados antes da
         // migração. Esses usuários passam a usar BCrypt assim que redefinirem a senha.

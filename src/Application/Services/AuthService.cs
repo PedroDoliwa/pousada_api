@@ -1,4 +1,5 @@
-﻿using PousadaApi.Application.Interfaces;
+﻿using PousadaApi.Application.Exceptions;
+using PousadaApi.Application.Interfaces;
 using PousadaApi.Domain.Entities;
 using PousadaApi.Domain.Interfaces;
 
@@ -24,7 +25,7 @@ public class AuthService : IAuthService
     {
         var usuarioExistente = await _usuarioRepository.ObterPorEmailAsync(email);
         if (usuarioExistente != null)
-            throw new InvalidOperationException("Email já cadastrado");
+            throw new EmailJaCadastradoException();
 
         var usuario = new Usuario
         {
