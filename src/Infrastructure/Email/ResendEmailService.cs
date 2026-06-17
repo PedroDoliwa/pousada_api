@@ -19,17 +19,23 @@ public sealed class ResendEmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task EnviarRedefinicaoSenhaAsync(string destinatario, string linkRedefinicao, CancellationToken cancellationToken = default)
+    public async Task EnviarRedefinicaoSenhaAsync(
+        string destinatario,
+        string linkRedefinicao,
+        int validadeHoras,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_options.From))
             throw new InvalidOperationException("Resend não configurado. Defina Resend:From nas configurações.");
+
+        var prazoValidade = validadeHoras == 1 ? "1 hora" : $"{validadeHoras} horas";
 
         var corpo = $"""
             Olá,
 
             Recebemos uma solicitação para redefinir sua senha.
 
-            Clique no link abaixo para criar uma nova senha (válido por 1 hora):
+            Clique no link abaixo para criar uma nova senha (válido por {prazoValidade}):
             {linkRedefinicao}
 
             Se você não solicitou esta alteração, ignore este e-mail.
