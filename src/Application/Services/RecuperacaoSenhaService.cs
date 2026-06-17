@@ -10,8 +10,6 @@ namespace PousadaApi.Application.Services;
 
 public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
 {
-    private const int ExpiracaoHoras = 1;
-
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IUsuarioRecuperacaoSenhaRepository _recuperacaoRepository;
     private readonly IPasswordHasher _passwordHasher;
@@ -88,7 +86,7 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
         {
             UsuarioId = usuarioId,
             TokenHash = tokenHash,
-            ExpiraEm = DateTime.UtcNow.AddHours(ExpiracaoHoras)
+            ExpiraEm = DateTime.UtcNow.AddHours(_appOptions.RecuperacaoSenhaExpiracaoHoras)
         };
 
         await _recuperacaoRepository.AdicionarAsync(recuperacao, cancellationToken);
@@ -98,7 +96,11 @@ public sealed class RecuperacaoSenhaService : IRecuperacaoSenhaService
 
         try
         {
-            await _emailService.EnviarRedefinicaoSenhaAsync(email, link, cancellationToken);
+            await _emailService.EnviarRedefinicaoSenhaAsync(
+                email,
+                link,
+                _appOptions.RecuperacaoSenhaExpiracaoHoras,
+                cancellationToken);
         }
         catch (Exception ex)
         {

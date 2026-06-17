@@ -22,7 +22,11 @@ public sealed class ResendEmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task EnviarRedefinicaoSenhaAsync(string destinatario, string linkRedefinicao, CancellationToken cancellationToken = default)
+    public async Task EnviarRedefinicaoSenhaAsync(
+        string destinatario,
+        string linkRedefinicao,
+        int validadeHoras,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_options.From))
             throw new InvalidOperationException("Resend não configurado. Defina Resend:From nas configurações.");
