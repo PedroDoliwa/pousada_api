@@ -57,7 +57,7 @@ Rotas protegidas exigem o header `Authorization: Bearer {token}`.
 
 ```env
 ASPNETCORE_ENVIRONMENT=Development
-ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=pousada_db;Username=postgres;Password=postgres
+ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=pousada_db;Username=NOME;Password=SENHA
 Jwt__SecretKey=sua-chave-secreta-com-pelo-menos-32-caracteres
 OPENAI_API_KEY=sua-chave-openai
 RESEND_API_KEY=sua-chave-resend
